@@ -12,6 +12,9 @@ package com.chat;
  * who : displays the list of currently connected clients
  * receive : displays all the messages not yet displayed
  * 
+ * <id> : a String
+ * <msg> : a String
+ * 
  */
 
 /**
