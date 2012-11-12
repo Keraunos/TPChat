@@ -1,5 +1,7 @@
 package com.chat;
 
+import java.rmi.*;
+
 /**
  * Client class for chat
  * 
@@ -8,7 +10,25 @@ package com.chat;
 public class ChatClient {
     
     public static void main(String args[]) {
-        // TODO code
+        
+        try {
+            
+            // get stub on server object
+            Chattable stub = (Chattable) Naming.lookup("127.0.0.1:8080/ChatServer");
+            
+            stub.connect("client_0");
+            
+        } catch (Exception e) {
+            // TODO process e
+        }
+        
     }
+    
+    
+    public void launchChat() {
+        
+        // TODO code
+        
+    };
     
 }

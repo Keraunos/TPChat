@@ -17,8 +17,28 @@ public class ChatServer extends UnicastRemoteObject implements Chattable {
     
     
     public ChatServer() throws RemoteException {
-        // TODO code
+        
+        messages = new ArrayList<Message>();
+        participants = new ArrayList<String>();
+        
     };
+    
+    
+    public static void main(String args[]) {
+        try {
+            
+            Chattable server = new ChatServer();
+            
+            // bind server object in registry
+            Naming.rebind("//127.0.0.1:8080/ChatServer", server);
+            System.out.println("ChatServer bound in registry.");
+            // TODO factorize binding name ChatServer
+            
+        } catch(Exception e) {
+            // TODO process e
+            e.printStackTrace();
+        }
+    }
     
     
     /**
