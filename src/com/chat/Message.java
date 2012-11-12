@@ -12,4 +12,14 @@ class Message {
     public String content;
     public String date;
     
+    
+    public Message(int id, String author_id, String content, String date) {
+        
+        this.id = id;
+        this.author_id = author_id;
+        this.content = content;
+        this.date = date;
+        
+    }
+    
 }

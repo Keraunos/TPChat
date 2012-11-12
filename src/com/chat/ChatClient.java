@@ -14,11 +14,13 @@ public class ChatClient {
         try {
             
             // get stub on server object
-            Chattable stub = (Chattable) Naming.lookup("127.0.0.1:8080/ChatServer");
+            Chattable stub = (Chattable) Naming.lookup("//127.0.0.1:8080/chat_server");
             
-            stub.connect("client_0");
+            System.out.println(stub.connect("client_0"));
+            
             
         } catch (Exception e) {
+            e.printStackTrace();
             // TODO process e
         }
         
