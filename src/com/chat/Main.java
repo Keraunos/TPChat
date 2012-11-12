@@ -15,6 +15,10 @@ package com.chat;
  * <id> : a String
  * <msg> : a String
  * 
+ * Message format:
+ * 2012-11-12 16:31 - bastien >> bla bla bla
+ * 2012-11-12 16:32 - gaetan >> foo bar baz
+ * 
  */
 
 /**
