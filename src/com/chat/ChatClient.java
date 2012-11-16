@@ -67,9 +67,12 @@ public class ChatClient {
     
     private void launchChat() throws RemoteException {
         
-        String userInput = "", command = "", arg = "", splitInput[];
+        String userInput = "", command, arg, splitInput[];
         
         while (!hasQuit) {
+            
+            command = "";
+            arg = "";
             
             // read user input
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -86,15 +89,6 @@ public class ChatClient {
             } catch (IOException e) {
                 // ignore exception gracefully
             }
-            
-<<<<<<< HEAD
-           // System.out.println(stub.connect("client_0"));
-            
-            ((ChatClient)stub).launchChat();
-
-=======
->>>>>>> Implemented connect and bye commands
-            
             
         }
         
@@ -113,42 +107,22 @@ public class ChatClient {
         
         if (command.equals("connect")) {
             idTrial = arg;
-            if (idTrial.equals("")) {
-                msg = "Error: you must provide an id to connect.";
-            } else if (isConnected) {
+            if (isConnected) {
                 msg = "You are already connected.";
+            } else  if (idTrial.equals("")) {
+                msg = "Error: you must provide an id to connect.";
             } else {
                 isConnected = stub.connect(idTrial);
                 if (isConnected) {
                     id = idTrial;
                     msg = "You are connected as " + id;
                 } else {
-                    msg = "Sorry, " + id + " is already connected.";
+                    msg = "Sorry, " + idTrial + " is already connected.";
                 }
             }
         }
         
-<<<<<<< HEAD
-    	 BufferedReader keyboard = new BufferedReader (new InputStreamReader (System.in));
-         try {
- 			String cmd= keyboard.readLine();
- 			String cmdparse[]= cmd.split("",2);
- 			if(cmdparse[0].equals("connect")){
- 	        	System.out.println(((Chattable)this).connect(cmdparse[1]));
- 	        }
- 	        	
- 	        
- 		} catch (IOException e) {
- 			// TODO Auto-generated catch block
- 			e.printStackTrace();
- 		}
-
-    	
-    	
-    	
-    };
-=======
-        else if (command.equals("bye")) {
+    	else if (command.equals("bye")) {
             
             stub.bye(id);
             isConnected = false;
@@ -162,6 +136,5 @@ public class ChatClient {
         
         System.out.println(msg);
     }
->>>>>>> Implemented connect and bye commands
     
 }
