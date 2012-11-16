@@ -3,3 +3,6 @@ manifest.mf
 build.xml
 build/
 .DS_Store
+bin/
+.project
+.classpath
