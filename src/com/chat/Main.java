@@ -16,8 +16,8 @@ package com.chat;
  * <msg> : a String
  * 
  * Message format:
- * 2012-11-12 16:31 - bastien >> bla bla bla
- * 2012-11-12 16:32 - gaetan >> foo bar baz
+ * 2012-11-12 16:31 [1] - bastien >> bla bla bla
+ * 2012-11-12 16:32 [2] - gaetan >> foo bar baz
  * 
  */
 

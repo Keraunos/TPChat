@@ -22,4 +22,9 @@ class Message {
         
     }
     
+    
+    public void display() {
+        System.out.println(date + " [" + id + "] - " + author_id + " >> " + content);
+    }
+    
 }
