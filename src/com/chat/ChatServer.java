@@ -5,11 +5,11 @@ import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
-import java.util.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+
 
 /**
  * Chat Server class
@@ -17,21 +17,26 @@ import java.util.HashMap;
  * @author gaetan
  */
 public class ChatServer extends UnicastRemoteObject implements Chattable {
-
+    
+    
     static public final String SERVER = "SERVER";
     
+    public HashMap<String, String> participants;
     public HashMap<Integer, Message> messages;
     public int messageCount;
-    public HashMap<String, String> participants;
     
     
-    public ChatServer() throws java.rmi.RemoteException {
+    /**
+     * ChatServer constructor
+     * 
+     * @throws java.rmi.RemoteException 
+     */
+    private ChatServer() throws java.rmi.RemoteException {
         
         messages = new HashMap<Integer, Message>();
         messageCount = 0;
         participants = new HashMap<String, String>();
-        participants.put(SERVER, SERVER);
-        
+        addParticipant(SERVER);
     };
     
     
@@ -47,7 +52,7 @@ public class ChatServer extends UnicastRemoteObject implements Chattable {
         
         // get server port
         try {
-            // TODO if no args[0] then force port (more graceful way)
+            // TODO if no args[0] then force port (more elegant way)
             //Integer I = new Integer(args[0]);
             //port  = I.intValue();
             port = 8080; // force port
@@ -64,13 +69,11 @@ public class ChatServer extends UnicastRemoteObject implements Chattable {
             
             Chattable server = new ChatServer();
             
-            // TODO factorize binding name ChatServer
             URL = "//" + InetAddress.getLocalHost().getHostName() + ":" + port + "/chat_server";
             
             // bind server object in registry
             Naming.rebind(URL, server);
-            System.out.println("Chat server bound in registry.");
-            
+            //System.out.println("Chat server bound in registry.");
             
         } catch(Exception e) {
             // TODO process e
@@ -90,54 +93,95 @@ public class ChatServer extends UnicastRemoteObject implements Chattable {
     @Override
     public Boolean connect(String id) {
         
-        String msg;
+        if (!addParticipant(id)) return false;
         
-        if (participants.containsKey(id)) {
-            return false;
-        } else {
-            participants.put(id, id);
-            this.addMessage(SERVER, id + " has joined the chat.");
-            return true;
-        }
-        
-    }
-    
-
-    @Override
-    public void send(String msg) {
-        // TODO code
-    }
-    
-    
-    @Override
-    public void bye(String id) {
-        
-        participants.remove(id);
-        this.addMessage(SERVER, id + " has left the chat.");
-        
-    }
-    
-    
-    @Override
-    public void who() {
-        // TODO code
-    }
-    
-    
-    @Override
-    public void receive() {
-        // TODO code
+        addMessage(SERVER, id + " has joined the chat.");
+        return true;
     }
     
     
     /**
-     * Gets current date time
-     * @return String
+     * Creates a new message from client which id is given as parameter
+     * 
+     * @param content The content of the message
+     * @param id The id of the client who sent the message
      */
-    private String getDateTime() {
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date date = new Date();
-        return dateFormat.format(date);
+    @Override
+    public void send(String content, String id) {
+        addMessage(id, content);
+    }
+    
+    
+    /**
+     * Disconnects the client whose id is given as parameter
+     * 
+     * @param id The id of the client to be disconnected
+     */
+    @Override
+    public void bye(String id) {
+        
+        participants.remove(id);
+        this.addMessage(SERVER, id + " has left the chat.");   
+    }
+    
+    
+    /**
+     * Gets the list of the participants to the chat, excluding SERVER
+     * 
+     * @return String the list of the participants
+     */
+    @Override
+    public String who() {
+        
+        String res = "Participants:";
+        for (String id:participants.values()) {
+            res += "\n - " + id;
+        }
+        return res;
+    }
+    
+    
+    /**
+     * Gets the last messages, from the one which id follows the id given as parameter
+     * 
+     * @param lastDisplayed The index of the message which precedes the first to be displayed
+     * @return String the last messages
+     */
+    @Override
+    public String receive(int lastDisplayed) {
+        
+        String res = "";
+        for (int i = lastDisplayed+1; i <= messageCount; i++) {
+            res += messages.get(i).toString() + "\n";
+        }
+        return res;
+    }
+    
+    
+    /**
+     * Gets messageCount, the number of messages sent to the server
+     * 
+     * @return messageCount
+     * @throws RemoteException 
+     */
+    @Override
+    public int getLastMsgIndex() throws RemoteException {
+        return this.messageCount;
+    }
+    
+    
+    /**
+     * Adds a client to the participants
+     * 
+     * @param id The id of the client
+     * @return Boolean true if could add client, else false
+     */
+    private Boolean addParticipant(String id) {
+        
+        if (participants.containsKey(id)) return false;
+        
+        participants.put(id, id);
+        return true;
     }
     
     
@@ -153,7 +197,19 @@ public class ChatServer extends UnicastRemoteObject implements Chattable {
                 messageCount,
                 new Message(messageCount,  author_id, content, getDateTime())
             );
-        
+        messages.get(messageCount).print();
+    }
+    
+    
+    /**
+     * Gets current date time
+     * 
+     * @return String
+     */
+    private String getDateTime() {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date = new Date();
+        return dateFormat.format(date);
     }
     
     
@@ -162,7 +218,7 @@ public class ChatServer extends UnicastRemoteObject implements Chattable {
      * 
      */
     private void displayAllMessages() {
-        for (Message msg:messages.values()) msg.display();
+        for (Message msg:messages.values()) msg.print();
     }
     
 }

@@ -6,15 +6,12 @@ import java.io.InputStreamReader;
 import java.rmi.*;
 
 /**
- * Chat client class
+ * Chat Client class
  * 
  * @author gaetan
  */
 public class ChatClient {
-	
-	public ChatClient (){
-		
-	}
+    
     
     private Chattable stub;
     private Boolean isConnected;
@@ -24,15 +21,14 @@ public class ChatClient {
     
     
     /**
-     * Main method: starts a client to communicate with the server
+     * Starts a chat client to communicate with the chat server
      * 
      * @param args 
      */
     public static void main(String args[]) {
         
+        // get stub from chat server
         Chattable stub;
-        
-        // get stub on server object
         try {
             stub = (Chattable) Naming.lookup("//127.0.0.1:8080/chat_server");
         } catch (Exception e) {
@@ -41,14 +37,13 @@ public class ChatClient {
             return;
         }
         
+        // create chat client and launch chat session
         ChatClient client = new ChatClient(stub);
-        
-        // launch chat session
         try {
             client.launchChat();
         } catch (Exception e) {
+            //e.printStackTrace();
             System.out.println("An error occurred during chat session:");
-            e.printStackTrace();
         }
         
     }
@@ -56,7 +51,8 @@ public class ChatClient {
     
     /**
      * ChatClient constructor
-     * @param stub 
+     * 
+     * @param stub The RMI stub
      */
     private ChatClient(Chattable stub) {
         this.stub = stub;
@@ -65,31 +61,47 @@ public class ChatClient {
     }
     
     
+    /**
+     * Starts interactive CLI chat. User is expected to type chat commands.
+     * 
+     * @throws RemoteException 
+     */
     private void launchChat() throws RemoteException {
         
-        String userInput = "", command, arg, splitInput[];
+        // get the index of the last message sent to the server so that client
+        // knows from where they can start printing messages
+        this.lastDisplayedMsgIndex = stub.getLastMsgIndex();
         
+        String  userInput = "",
+                command,
+                arg,
+                splitInput[];
+        
+        // while client has not quit, process their commands
         while (!hasQuit) {
             
             command = "";
             arg = "";
             
-            // read user input
+            // read, format and process user input if it is possible
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             try {
+                
                 userInput = br.readLine().trim();
+                
                 if (userInput.length() > 0) {
+                    
                     splitInput = userInput.split("\\s+", 2);
                     command = splitInput[0];
-                    if (splitInput.length > 1) {
+                    if (splitInput.length > 1)
                         arg = splitInput[1];
-                    }
+                    
                     processCommand(command, arg);
                 }
+                
             } catch (IOException e) {
                 // ignore exception gracefully
             }
-            
         }
         
     }
@@ -103,38 +115,77 @@ public class ChatClient {
      */
     private void processCommand(String command, String arg) throws RemoteException {
         
-        String msg = "", idTrial;
+        String feedback = "";
         
+        
+        // command CONNECT
         if (command.equals("connect")) {
-            idTrial = arg;
+            String idTrial = arg;
             if (isConnected) {
-                msg = "You are already connected.";
+                feedback = "You are already connected as " + id;
             } else  if (idTrial.equals("")) {
-                msg = "Error: you must provide an id to connect.";
+                feedback = "You must provide an id to connect.";
             } else {
                 isConnected = stub.connect(idTrial);
                 if (isConnected) {
                     id = idTrial;
-                    msg = "You are connected as " + id;
+                    lastDisplayedMsgIndex = stub.getLastMsgIndex();
+                    feedback = "You are connected as " + id;
                 } else {
-                    msg = "Sorry, " + idTrial + " is already connected.";
+                    feedback = "Sorry, " + idTrial + " is already connected.";
                 }
             }
         }
         
+        
+        // command BYE
     	else if (command.equals("bye")) {
             
-            stub.bye(id);
-            isConnected = false;
+            if (isConnected) {
+                stub.bye(id);
+                isConnected = false;
+            }
             hasQuit = true;
-            
+            if (id != null) feedback = "Bye bye " + id + "!";
+            else            feedback = "Bye bye!";
         }
         
+        
+        // command SEND
+        else if (command.equals("send")) {
+            if (!isConnected) {
+                feedback = "You must be connected to process command \"send\"";
+            } else {
+                String content = arg;
+                if (content.equals("")) {
+                    feedback = "You must provide a message content to send it.";
+                } else {
+                    stub.send(content, id);
+                    feedback = stub.receive(lastDisplayedMsgIndex);
+                    lastDisplayedMsgIndex = stub.getLastMsgIndex();
+                }
+            }
+        }
+        
+        
+        // command WHO
+        else if (command.equals("who")) {
+            if (!isConnected) {
+                feedback = "You must be connected to process command \"who\"";
+            } else {
+                feedback = stub.who();
+            }
+        }
+        
+        
+        // unknown command
         else {
-            msg = "Command not found.";
+            feedback = "Command not found.";
         }
         
-        System.out.println(msg);
+        
+        if (!feedback.equals(""))
+            System.out.println(feedback);
     }
     
 }
